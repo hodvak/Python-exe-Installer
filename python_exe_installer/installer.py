@@ -1,8 +1,12 @@
+import time
+
 import PyInstaller.__main__
 import os
+from zipfile import ZipFile
 
 
-def create_exe(main_path, project_name=None, files_path=None, project_path=None,new_files_folder=None , window=False):
+def create_exe(main_path, project_name=None, files_path=None, project_path=None, new_files_folder='py_exe_install',
+               window=False):
     """
     create exe folder with PyInstaller
     :param main_path: main file path
@@ -10,9 +14,10 @@ def create_exe(main_path, project_name=None, files_path=None, project_path=None,
     :param files_path: all files to include in the exe path
     :param project_path: path to the project path(where 'venv' folder is)
     :param new_files_folder: where the new files will be
-    :param windows: hide console mode
+    :param window: hide console mode
     :return: None
     """
+    new_files_folder += "\\" + project_name
     # add files_path if not exists
     if files_path is None:
         if '\\' in main_path:
@@ -66,10 +71,36 @@ def create_exe(main_path, project_name=None, files_path=None, project_path=None,
 
     # set the folder of the new files to the new_files_folder
     if new_files_folder is not None:
-        pyinstaller_data.append('--distpath='+new_files_folder)
+        pyinstaller_data.append('--distpath=' + new_files_folder)
 
     # add the file that will run
     pyinstaller_data.append(main_path)
 
     # create the exe folder with pyinstaller
     PyInstaller.__main__.run(pyinstaller_data)
+    while len(os.listdir(new_files_folder + '\\' + project_name)) == 0:
+        time.sleep(1)
+    print(new_files_folder + '\\' + project_name)
+    print(new_files_folder + '\\' + project_name)
+    __zip_file(new_files_folder + '\\' + project_name, project_name, new_files_folder)
+    print('succeed')
+
+    with open(new_files_folder + '\\' + project_name + '.py', 'w+') as new_file:
+        with open('src\\install.py', 'r+') as old_file:
+            for line in old_file:
+                if line == '        dirname = \'new project\'\n':
+                    line = '        dirname = \'' + project_name + '\'\n'
+                new_file.write(line)
+
+
+def __zip_file(file_dir, new_file_name, new_file_dir=''):
+    print(new_file_dir + '\\' + new_file_name + '.zip')
+    with ZipFile(new_file_dir + '\\' + new_file_name + '.zip', 'w') as zip:
+        for folderName, sub_folders, filenames in os.walk(new_file_dir + '\\' + new_file_name):
+
+            for filename in filenames:
+                # create complete filepath of file in directory
+                file_path = os.path.join(folderName, filename)
+                # Add file to zip
+                zip.write(file_path, file_dir.split('\\')[-1] + '\\' + '\\'.join(file_path.split(file_dir + '\\')[1:]))
+    zip.close()
