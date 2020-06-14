@@ -1,5 +1,3 @@
-import time
-
 import PyInstaller.__main__
 import os
 from zipfile import ZipFile
@@ -19,6 +17,15 @@ def create_exe(
         exit(-1)
     project_dir = os.getcwd() + '\\py_exe_install\\' + project_name
 
+    if venv_path is None:
+        venv_path = os.path.dirname(main_file_path)
+        while not os.path.exists(venv_path + '\\venv') and venv_path != '':
+            venv_path = os.path.dirname(venv_path)
+        if not os.path.exists(venv_path + '\\venv'):
+            print('need venv path')
+            exit(-1)
+        venv_path = venv_path + '\\venv'
+
     __create_main_exe(
         project_name,
         main_file_path,
@@ -29,6 +36,7 @@ def create_exe(
     )
     __zip_file(project_dir + '\\' + project_name, project_name, project_dir)
     __create_installer_file(project_dir, project_name)
+    __create_final_exe(project_dir, project_name, venv_path)
 
 
 def __zip_file(file_dir: str, new_file_name: str, new_file_dir: str):
@@ -73,15 +81,6 @@ def __create_main_exe(project_name: str,
     if all_files_needed_path is None:
         all_files_needed_path = os.path.dirname(main_file_path)
 
-    if venv_path is None:
-        venv_path = os.path.dirname(main_file_path)
-        while not os.path.exists(venv_path + '\\venv') and venv_path != '':
-            venv_path = os.path.dirname(venv_path)
-        if not os.path.exists(venv_path + '\\venv'):
-            print('need venv path')
-            exit(-1)
-        venv_path = venv_path + '\\venv'
-
     pyinstaller_data = ['--name=' + project_name]
 
     if windowed:
@@ -119,3 +118,14 @@ def __create_installer_file(path, project_name):
                 if line == '        dirname = \'new project\'\n':
                     line = '        dirname = \'' + project_name + '\'\n'
                 new_file.write(line)
+
+
+def __create_final_exe(path, project_name, venv_path):
+    pyinstaller_data = ['--name=' + project_name]
+    pyinstaller_data.append('-F')
+    pyinstaller_data.append('--paths=' + venv_path + '\\Lib\\site-packages')
+    pyinstaller_data.append('--add-data=' + path + '\\' + project_name + '.zip;./')
+    pyinstaller_data.append('--add-data=' + venv_path + '\\Lib\\site-packages;./')
+    pyinstaller_data.append('--distpath=' + path)
+    pyinstaller_data.append(path + '\\' + project_name + '.py')
+    PyInstaller.__main__.run(pyinstaller_data)

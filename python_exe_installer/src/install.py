@@ -7,6 +7,9 @@ from win32com.client import Dispatch
 
 def main():
     try:
+        path = os.path.dirname(__file__)
+        if getattr(sys, 'frozen', False):
+            path = sys._MEIPASS
         dirname = 'new project'
         path = os.environ.get("PROGRAMFILES") + '\\' + dirname
         if os.path.exists(path):
@@ -14,7 +17,7 @@ def main():
             input()
             exit(-1)
         os.makedirs(path)
-        with ZipFile(dirname + '.zip', 'r') as zipObj:
+        with ZipFile(path + '\\' + dirname + '.zip', 'r') as zipObj:
             zipObj.extractall(os.environ.get("PROGRAMFILES"))
         create_shortcut(dirname, path)
 
