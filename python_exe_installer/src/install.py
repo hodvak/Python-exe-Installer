@@ -3,27 +3,34 @@ import ctypes
 import sys
 import os
 from win32com.client import Dispatch
+from os.path import expanduser
+from progress.bar import Bar
 
 
 def main():
     try:
+        home = expanduser("~").split('\\')[0] + '\\python programs'
+        bar = Bar('Installing', max=20)
+
         path = os.path.dirname(__file__)
+        bar.next(4)
         if getattr(sys, 'frozen', False):
             path = sys._MEIPASS
         dirname = 'new project'
-        path = os.environ.get("PROGRAMFILES") + '\\' + dirname
-        if os.path.exists(path):
-            print('this dir already exist')
-            input()
+        new_path = home + '\\' + dirname
+        bar.next(5)
+        if os.path.exists(new_path):
+            print(f'this dir already exist({new_path})')
             exit(-1)
-        os.makedirs(path)
+        os.makedirs(new_path)
         with ZipFile(path + '\\' + dirname + '.zip', 'r') as zipObj:
-            zipObj.extractall(os.environ.get("PROGRAMFILES"))
-        create_shortcut(dirname, path)
+            zipObj.extractall(home)
+        bar.next(10)
+        create_shortcut(dirname, new_path)
 
     except Exception as e:
         print(e)
-    input()
+        exit()
 
 
 def create_shortcut(name, path):
@@ -48,8 +55,8 @@ def is_admin():
 
 
 if __name__ == '__main__':
-    if is_admin():
-        print("admin")
+    if is_admin() or True:
+        # print("admin")
         main()
     else:
         print("no admin")

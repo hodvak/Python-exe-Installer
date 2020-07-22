@@ -10,6 +10,18 @@ def create_exe(
         venv_path: str = None,
         windowed: bool = False
 ):
+    """
+    the main function for creating exe installer one exe file
+
+    :param main_file_path:your program's main file
+    :param project_name:name for your project
+    :param all_files_needed_path: path to all the dependencies(will ignore venv,__pycache__,build,dist and your main file)
+    :param venv_path: the venv path to get all libs you used on your program
+    :param windowed: window app or console app (for True will not open console)
+    :return:None
+    """
+
+    # open dir for the project output
     if not os.path.isdir(os.getcwd() + '\\py_exe_install'):
         os.mkdir(os.getcwd() + '\\py_exe_install')
     if os.path.isdir(os.getcwd() + '\\py_exe_install\\' + project_name):
@@ -17,6 +29,7 @@ def create_exe(
         exit(-1)
     project_dir = os.getcwd() + '\\py_exe_install\\' + project_name
 
+    # search for venv path if not exist
     if venv_path is None:
         venv_path = os.path.dirname(main_file_path)
         while not os.path.exists(venv_path + '\\venv') and venv_path != '':
@@ -26,6 +39,7 @@ def create_exe(
             exit(-1)
         venv_path = venv_path + '\\venv'
 
+    # create the main exe file
     __create_main_exe(
         project_name,
         main_file_path,
@@ -34,8 +48,14 @@ def create_exe(
         venv_path,
         windowed
     )
+
+    # zip it up
     __zip_file(project_dir + '\\' + project_name, project_name, project_dir)
+
+    # create installer py file to unzip the zip file
     __create_installer_file(project_dir, project_name)
+
+    # warp it all to one exe file
     __create_final_exe(project_dir, project_name, venv_path)
 
 
